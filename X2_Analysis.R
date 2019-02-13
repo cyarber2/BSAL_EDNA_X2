@@ -73,9 +73,13 @@ plot(x=BsalPos$ReplicateContainer,
 library(tidyverse)
 library(broom)
 
-qplot(as.numeric(FilterVolume), EstimatedCopiesAdj, color=ReplicateContainer, data=BsalPos, geom="point") +
+qplot(as.numeric(FilterVolume)*1000, EstimatedCopiesAdj, color=ReplicateContainer, data=BsalPos, geom="point") +
   geom_smooth(method = "lm", se=F) +
-  facet_grid(ifelse(ReplicateContainer==1,"Y","N") ~ ., space="free_y", scales = "free_y")
+  geom_abline(intercept=0, slope=1, data=NULL) +
+  labs(x="number of zoospores filtered",
+       y="Copies recovered",
+       caption="Black line is the one-to-one line")
+  # facet_grid(ifelse(ReplicateContainer==1,"Y","N") ~ ., space="free_y", scales = "free_y")
 
 qplot(as.numeric(FilterVolume), EstimatedCopiesAdj,
       color=ReplicateContainer,
@@ -86,7 +90,7 @@ qplot(as.numeric(FilterVolume), EstimatedCopiesAdj,
 # linear regression by container
 lms <- BsalPos %>%
   group_by(ReplicateContainer) %>%
-  do(mod = lm(EstimatedCopiesAdj ~ as.numeric(FilterVolume), data = .)) %>%
+  do(mod = lm(EstimatedCopiesAdj ~ I(as.numeric(FilterVolume)*1000), data = .)) %>%
   tidy(mod, conf.int=TRUE)
 
 ggplot(lms, aes(ReplicateContainer, y = estimate, ymin=conf.low, ymax=conf.high)) +
